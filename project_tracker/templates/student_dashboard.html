@@ -238,6 +238,16 @@
                             {% if form.description.errors %}<span style="color:#dc3545;font-size:12px;">{{ form.description.errors.0 }}</span>{% endif %}
                         </div>
                         <div style="margin-bottom:15px;">
+                            <label style="display:block;margin-bottom:5px;font-weight:600;">Guide Name *</label>
+                            {{ form.guide_name }}
+                            {% if form.guide_name.errors %}<span style="color:#dc3545;font-size:12px;">{{ form.guide_name.errors.0 }}</span>{% endif %}
+                        </div>
+                        <div style="margin-bottom:15px;">
+                            <label style="display:block;margin-bottom:5px;font-weight:600;">Guide Faculty ID *</label>
+                            {{ form.guide_faculty_id }}
+                            {% if form.guide_faculty_id.errors %}<span style="color:#dc3545;font-size:12px;">{{ form.guide_faculty_id.errors.0 }}</span>{% endif %}
+                        </div>
+                        <div style="margin-bottom:15px;">
                             <label style="display:block;margin-bottom:5px;font-weight:600;">Attachment (Optional)</label>
                             {{ form.attachment }}
                         </div>
@@ -273,13 +283,88 @@
             <!-- Internship Card -->
             <div class="card">
                 <h2>🏢 Internships</h2>
-                <div class="placeholder">
-                    <div class="placeholder-icon">💼</div>
-                    <p><strong>Internship Tracking</strong></p>
-                    <p>Feature coming soon!</p>
-                    <p style="font-size: 12px; color: #ccc; margin-top: 10px;">
-                        Track your internship progress here.
-                    </p>
+                <div style="margin-bottom: 20px;">
+                    <h3>Submit New Internship</h3>
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div style="margin-bottom:15px;">
+                            <label style="display:block;margin-bottom:5px;font-weight:600;">Company Name *</label>
+                            {{ internship_form.company_name }}
+                            {% if internship_form.company_name.errors %}<span style="color:#dc3545;font-size:12px;">{{ internship_form.company_name.errors.0 }}</span>{% endif %}
+                        </div>
+                        <div style="margin-bottom:15px;">
+                            <label style="display:block;margin-bottom:5px;font-weight:600;">Position/Role *</label>
+                            {{ internship_form.position }}
+                            {% if internship_form.position.errors %}<span style="color:#dc3545;font-size:12px;">{{ internship_form.position.errors.0 }}</span>{% endif %}
+                        </div>
+                        <div style="margin-bottom:15px;">
+                            <label style="display:block;margin-bottom:5px;font-weight:600;">Location *</label>
+                            {{ internship_form.location }}
+                            {% if internship_form.location.errors %}<span style="color:#dc3545;font-size:12px;">{{ internship_form.location.errors.0 }}</span>{% endif %}
+                        </div>
+                        <div style="margin-bottom:15px;">
+                            <label style="display:block;margin-bottom:5px;font-weight:600;">Start Date *</label>
+                            {{ internship_form.start_date }}
+                            {% if internship_form.start_date.errors %}<span style="color:#dc3545;font-size:12px;">{{ internship_form.start_date.errors.0 }}</span>{% endif %}
+                        </div>
+                        <div style="margin-bottom:15px;">
+                            <label style="display:block;margin-bottom:5px;font-weight:600;">End Date</label>
+                            {{ internship_form.end_date }}
+                            {% if internship_form.end_date.errors %}<span style="color:#dc3545;font-size:12px;">{{ internship_form.end_date.errors.0 }}</span>{% endif %}
+                        </div>
+                        <div style="margin-bottom:15px;">
+                            <label style="display:block;margin-bottom:5px;font-weight:600;">Description</label>
+                            {{ internship_form.description }}
+                            {% if internship_form.description.errors %}<span style="color:#dc3545;font-size:12px;">{{ internship_form.description.errors.0 }}</span>{% endif %}
+                        </div>
+                        <div style="margin-bottom:15px;">
+                            <label style="display:block;margin-bottom:5px;font-weight:600;">Stipend</label>
+                            {{ internship_form.stipend }}
+                            {% if internship_form.stipend.errors %}<span style="color:#dc3545;font-size:12px;">{{ internship_form.stipend.errors.0 }}</span>{% endif %}
+                        </div>
+                        <div style="margin-bottom:15px;">
+                            <label style="display:block;margin-bottom:5px;font-weight:600;">Supervisor Name</label>
+                            {{ internship_form.supervisor_name }}
+                            {% if internship_form.supervisor_name.errors %}<span style="color:#dc3545;font-size:12px;">{{ internship_form.supervisor_name.errors.0 }}</span>{% endif %}
+                        </div>
+                        <div style="margin-bottom:15px;">
+                            <label style="display:block;margin-bottom:5px;font-weight:600;">Supervisor Email</label>
+                            {{ internship_form.supervisor_email }}
+                            {% if internship_form.supervisor_email.errors %}<span style="color:#dc3545;font-size:12px;">{{ internship_form.supervisor_email.errors.0 }}</span>{% endif %}
+                        </div>
+                        <div style="margin-bottom:15px;">
+                            <label style="display:block;margin-bottom:5px;font-weight:600;">Attachment (Optional)</label>
+                            {{ internship_form.attachment }}
+                        </div>
+                        <button type="submit" name="internship_submit" style="background:#667eea;color:#fff;padding:10px 16px;border:none;border-radius:4px;cursor:pointer;font-weight:600;">Submit Internship</button>
+                    </form>
+                </div>
+
+                <div>
+                    <h3>Your Internship Submissions</h3>
+                    {% if internships %}
+                        <div>
+                            {% for i in internships %}
+                                <div style="padding:12px;margin-bottom:10px;border:1px solid #ddd;border-radius:4px;background:#f9f9f9;">
+                                    <strong>{{ i.company_name }}</strong>
+                                    <div style="font-size:12px;color:#666;margin-top:5px;">
+                                        <span><strong>Position:</strong> {{ i.position }}</span> | 
+                                        <span><strong>Location:</strong> {{ i.location }}</span><br/>
+                                        <span><strong>Status:</strong> 
+                                            {% if i.status == 'P' %}<span style="color:#ffc107;">Pending</span>
+                                            {% elif i.status == 'A' %}<span style="color:#28a745;">Approved</span>
+                                            {% else %}<span style="color:#dc3545;">Rejected</span>{% endif %}
+                                        </span><br/>
+                                        <span><strong>Submitted:</strong> {{ i.submitted_at|date:"d M, Y H:i" }}</span>
+                                        {% if i.faculty_remarks %}<br/>
+                                        <span><strong>Remarks:</strong> {{ i.faculty_remarks }}</span>{% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p style="color:#777;padding:15px;background:#f5f5f5;border-radius:4px;text-align:center;">No internship submissions yet. Submit your first internship above!</p>
+                    {% endif %}
                 </div>
             </div>
         </div>

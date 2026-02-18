@@ -245,16 +245,43 @@
                 </div>
             </div>
 
-            <!-- Mentorship Card -->
+            <!-- Internship Review Card -->
             <div class="card">
-                <h2>🎓 Mentorship</h2>
-                <div class="placeholder">
-                    <div class="placeholder-icon">👥</div>
-                    <p><strong>Student Mentorship</strong></p>
-                    <p>Feature coming soon!</p>
-                    <p style="font-size: 12px; color: #ccc; margin-top: 10px;">
-                        Manage your mentored students here.
-                    </p>
+                <h2>🏢 Internship Reviews</h2>
+                <div>
+                    {% if internships %}
+                        <div>
+                            {% for i in internships %}
+                                <div style="padding:12px;margin-bottom:12px;border:1px solid #ddd;border-radius:4px;background:#f9f9f9;">
+                                    <strong style="font-size:16px;">{{ i.company_name }}</strong>
+                                    <div style="font-size:13px;color:#666;margin-top:5px;">
+                                        <span><strong>Student:</strong> {{ i.student.user.username }} ({{ i.student.register_number }})</span><br/>
+                                        <span><strong>Position:</strong> {{ i.position }}</span> |
+                                        <span><strong>Location:</strong> {{ i.location }}</span><br/>
+                                        <span><strong>Status:</strong> {{ i.get_status_display }}</span> |
+                                        <span><strong>Submitted:</strong> {{ i.submitted_at|date:"d M, Y H:i" }}</span>
+                                        {% if i.start_date %}<br/>
+                                        <span><strong>Duration:</strong> {{ i.start_date|date:"d M, Y" }} {% if i.end_date %} - {{ i.end_date|date:"d M, Y" }}{% endif %}</span>{% endif %}
+                                    </div>
+                                    <form method="post" style="margin-top:10px;padding-top:10px;border-top:1px solid #ddd;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="internship_id" value="{{ i.id }}">
+                                        <div style="margin-bottom:8px;">
+                                            <label style="display:block;font-weight:600;margin-bottom:4px;">Review Status:</label>
+                                            {{ internship_review_form.status }}
+                                        </div>
+                                        <div style="margin-bottom:8px;">
+                                            <label style="display:block;font-weight:600;margin-bottom:4px;">Remarks:</label>
+                                            {{ internship_review_form.faculty_remarks }}
+                                        </div>
+                                        <button type="submit" name="internship_review" style="background:#28a745;color:#fff;padding:8px 14px;border:none;border-radius:4px;margin-right:8px;cursor:pointer;font-weight:600;">Update Status</button>
+                                    </form>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p style="color:#999;padding:20px;text-align:center;background:#f5f5f5;border-radius:4px;">No internship submissions found.</p>
+                    {% endif %}
                 </div>
             </div>
         </div>

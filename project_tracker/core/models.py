@@ -1,6 +1,14 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+# Role choices
+ROLE_CHOICES = [
+    ('student', 'Student'),
+    ('faculty', 'Faculty'),
+    ('admin', 'Admin'),
+]
+
+
 # StudentProfile Model
 class StudentProfile(models.Model):
     """
@@ -14,6 +22,7 @@ class StudentProfile(models.Model):
         choices=[(1, '1st Year'), (2, '2nd Year'), (3, '3rd Year'), (4, '4th Year')],
         help_text="Academic year"
     )
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='student')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -44,6 +53,7 @@ class FacultyProfile(models.Model):
         ],
         help_text="Faculty designation/position"
     )
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='faculty')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -70,6 +80,8 @@ class Project(models.Model):
     title = models.CharField(max_length=255)
     domain = models.CharField(max_length=100)
     description = models.TextField()
+    guide_name = models.CharField(max_length=255, default='', help_text="Name of the project guide faculty")
+    guide_faculty_id = models.CharField(max_length=20, default='', help_text="Faculty ID of the project guide")
     status = models.CharField(max_length=1, choices=STATUS_CHOICES, default=STATUS_PENDING)
     faculty_reviewer = models.ForeignKey(FacultyProfile, on_delete=models.SET_NULL, null=True, blank=True, related_name='reviewed_projects')
     faculty_remarks = models.TextField(blank=True)
@@ -99,3 +111,41 @@ class ProjectReport(models.Model):
     def __str__(self):
         by = self.generated_by.user.username if self.generated_by else 'N/A'
         return f"Report for {self.project.title} by {by}"
+
+
+# Internship Model
+class Internship(models.Model):
+    """
+    Model to store student internship information.
+    """
+    STATUS_PENDING = 'P'
+    STATUS_APPROVED = 'A'
+    STATUS_REJECTED = 'R'
+    STATUS_CHOICES = [
+        (STATUS_PENDING, 'Pending'),
+        (STATUS_APPROVED, 'Approved'),
+        (STATUS_REJECTED, 'Rejected'),
+    ]
+
+    student = models.ForeignKey(StudentProfile, on_delete=models.CASCADE, related_name='internships')
+    company_name = models.CharField(max_length=255)
+    position = models.CharField(max_length=255)
+    location = models.CharField(max_length=255)
+    start_date = models.DateField()
+    end_date = models.DateField(null=True, blank=True)
+    description = models.TextField(blank=True)
+    stipend = models.CharField(max_length=50, blank=True)
+    supervisor_name = models.CharField(max_length=255, blank=True)
+    supervisor_email = models.EmailField(blank=True)
+    status = models.CharField(max_length=1, choices=STATUS_CHOICES, default=STATUS_PENDING)
+    faculty_remarks = models.TextField(blank=True)
+    attachment = models.FileField(upload_to='internship_documents/', null=True, blank=True)
+    submitted_at = models.DateTimeField(auto_now_add=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-submitted_at']
+
+    def __str__(self):
+        return f"{self.company_name} - {self.student.user.username}"

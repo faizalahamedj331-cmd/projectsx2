@@ -11,7 +11,7 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     # Admin panel
-    path('admin/', admin.site.urls),
+    path('django-admin/', admin.site.urls),
 
     # Include core app URLs
     path('', include('core.urls')),

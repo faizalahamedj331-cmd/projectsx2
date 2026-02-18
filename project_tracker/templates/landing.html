@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Tracker - Landing Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 90%;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        p {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        .role-selection {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .role-card {
+            background-color: #fff;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: #333;
+            display: block;
+        }
+        .role-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            border-color: #667eea;
+        }
+        .role-card h3 {
+            margin: 0 0 10px 0;
+            color: #667eea;
+        }
+        .role-card p {
+            margin: 0;
+            color: #666;
+        }
+        .student-card {
+            border-color: #28a745;
+        }
+        .student-card:hover {
+            border-color: #28a745;
+        }
+        .student-card h3 {
+            color: #28a745;
+        }
+        .faculty-card {
+            border-color: #ffc107;
+        }
+        .faculty-card:hover {
+            border-color: #ffc107;
+        }
+        .faculty-card h3 {
+            color: #ffc107;
+        }
+        .admin-card {
+            border-color: #dc3545;
+        }
+        .admin-card:hover {
+            border-color: #dc3545;
+        }
+        .admin-card h3 {
+            color: #dc3545;
+        }
+        .admin-card a {
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to Project Tracker</h1>
+        <p>Select your role to get started:</p>
+        <div class="role-selection">
+            <a href="{% url 'student_register' %}" class="role-card student-card">
+                <h3>Student</h3>
+                <p>Register as a student to submit and track your projects.</p>
+            </a>
+            <a href="{% url 'faculty_register' %}" class="role-card faculty-card">
+                <h3>Faculty</h3>
+                <p>Register as faculty to review and manage student projects.</p>
+            </a>
+            {% if admin_exists %}
+            <a href="{% url 'admin_login' %}" class="role-card admin-card">
+                <h3>Admin</h3>
+                <p>Login as an administrator to oversee the system.</p>
+            </a>
+            {% else %}
+            <a href="{% url 'admin_register' %}" class="role-card admin-card">
+                <h3>Admin</h3>
+                <p>Register as the first administrator to set up the system.</p>
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>
