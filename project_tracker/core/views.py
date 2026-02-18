@@ -8,7 +8,7 @@ import os
 from django.core.files.base import ContentFile
 from django.urls import reverse
 from .models import StudentProfile, FacultyProfile, Project, ProjectReport, Internship
-from .forms import ProjectSubmissionForm, ProjectReviewForm, InternshipForm, InternshipReviewForm
+from .forms import ProjectSubmissionForm, ProjectReviewForm, InternshipForm, InternshipReviewForm, StudentRegistrationForm, FacultyRegistrationForm, AdminRegistrationForm
 from .decorators import group_required
 from django.db.models import Count
 
@@ -21,114 +21,77 @@ from reportlab.pdfgen import canvas
 
 def student_register(request):
     """
-    Handle student registration.
-    Create User and assign to 'Student' group, then create StudentProfile.
+    Handle student registration using StudentRegistrationForm.
     """
     if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        register_number = request.POST.get('register_number')
-        department = request.POST.get('department')
-        year = request.POST.get('year')
+        form = StudentRegistrationForm(request.POST)
+        if form.is_valid():
+            try:
+                # Create User
+                username = form.cleaned_data['username']
+                password = form.cleaned_data['password']
+                user = User.objects.create_user(username=username, password=password)
 
-        # Validate required fields
-        if not all([username, password, register_number, department, year]):
-            messages.error(request, "All fields are required!")
-            return redirect('student_register')
+                # Get or create 'Student' group
+                student_group, created = Group.objects.get_or_create(name='Student')
+                user.groups.add(student_group)
 
-        # Check if username already exists
-        if User.objects.filter(username=username).exists():
-            messages.error(request, "Username already exists!")
-            return redirect('student_register')
+                # Create StudentProfile
+                profile = form.save(commit=False)
+                profile.user = user
+                profile.save()
 
-        # Check if register number already exists
-        if StudentProfile.objects.filter(register_number=register_number).exists():
-            messages.error(request, "Register number already exists!")
-            return redirect('student_register')
+                messages.success(request, "Registration successful! Please login.")
+                return redirect('login')
 
-        try:
-            # Create User
-            user = User.objects.create_user(username=username, password=password)
+            except Exception as e:
+                messages.error(request, f"Error during registration: {str(e)}")
+        else:
+            messages.error(request, "Please correct the errors below.")
+    else:
+        form = StudentRegistrationForm()
 
-            # Get or create 'Student' group
-            student_group, created = Group.objects.get_or_create(name='Student')
-            user.groups.add(student_group)
-
-            # Create StudentProfile
-            StudentProfile.objects.create(
-                user=user,
-                register_number=register_number,
-                department=department,
-                year=year
-            )
-
-            messages.success(request, "Registration successful! Please login.")
-            return redirect('login')
-
-        except Exception as e:
-            messages.error(request, f"Error during registration: {str(e)}")
-            return redirect('student_register')
-
-    return render(request, 'student_register.html')
+    return render(request, 'student_register.html', {'form': form})
 
 
 def faculty_register(request):
     """
-    Handle faculty registration.
-    Create User and assign to 'Faculty' group, then create FacultyProfile.
+    Handle faculty registration using FacultyRegistrationForm.
     """
     if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        employee_id = request.POST.get('employee_id')
-        department = request.POST.get('department')
-        designation = request.POST.get('designation')
+        form = FacultyRegistrationForm(request.POST)
+        if form.is_valid():
+            try:
+                # Create User
+                username = form.cleaned_data['username']
+                password = form.cleaned_data['password']
+                user = User.objects.create_user(username=username, password=password)
 
-        # Validate required fields
-        if not all([username, password, employee_id, department, designation]):
-            messages.error(request, "All fields are required!")
-            return redirect('faculty_register')
+                # Get or create 'Faculty' group
+                faculty_group, created = Group.objects.get_or_create(name='Faculty')
+                user.groups.add(faculty_group)
 
-        # Check if username already exists
-        if User.objects.filter(username=username).exists():
-            messages.error(request, "Username already exists!")
-            return redirect('faculty_register')
+                # Create FacultyProfile
+                profile = form.save(commit=False)
+                profile.user = user
+                profile.save()
 
-        # Check if employee ID already exists
-        if FacultyProfile.objects.filter(employee_id=employee_id).exists():
-            messages.error(request, "Employee ID already exists!")
-            return redirect('faculty_register')
+                messages.success(request, "Registration successful! Please login.")
+                return redirect('login')
 
-        try:
-            # Create User
-            user = User.objects.create_user(username=username, password=password)
+            except Exception as e:
+                messages.error(request, f"Error during registration: {str(e)}")
+        else:
+            messages.error(request, "Please correct the errors below.")
+    else:
+        form = FacultyRegistrationForm()
 
-            # Get or create 'Faculty' group
-            faculty_group, created = Group.objects.get_or_create(name='Faculty')
-            user.groups.add(faculty_group)
-
-            # Create FacultyProfile
-            FacultyProfile.objects.create(
-                user=user,
-                employee_id=employee_id,
-                department=department,
-                designation=designation
-            )
-
-            messages.success(request, "Registration successful! Please login.")
-            return redirect('login')
-
-        except Exception as e:
-            messages.error(request, f"Error during registration: {str(e)}")
-            return redirect('faculty_register')
-
-    return render(request, 'faculty_register.html')
+    return render(request, 'faculty_register.html', {'form': form})
 
 
 def admin_register(request):
     """
-    Handle admin registration (one-time setup).
-    Create User and assign to 'Admin' group. No profile needed.
+    Handle admin registration (one-time setup) using AdminRegistrationForm.
     """
     # Check if any admin already exists
     if User.objects.filter(groups__name='Admin').exists():
@@ -136,44 +99,34 @@ def admin_register(request):
         return redirect('home')
 
     if request.method == 'POST':
-        name = request.POST.get('name')
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-        confirm_password = request.POST.get('confirm_password')
+        form = AdminRegistrationForm(request.POST)
+        if form.is_valid():
+            try:
+                # Create User
+                email = form.cleaned_data['email']
+                password = form.cleaned_data['password']
+                name = form.cleaned_data['name']
+                
+                user = User.objects.create_user(username=email, email=email, password=password, first_name=name)
+                user.is_staff = True  # Give admin access to Django admin
+                user.is_superuser = True
+                user.save()
 
-        # Validate required fields
-        if not all([name, email, password, confirm_password]):
-            messages.error(request, "All fields are required!")
-            return redirect('admin_register')
+                # Get or create 'Admin' group
+                admin_group, created = Group.objects.get_or_create(name='Admin')
+                user.groups.add(admin_group)
 
-        if password != confirm_password:
-            messages.error(request, "Passwords do not match!")
-            return redirect('admin_register')
+                messages.success(request, "Admin registration successful! Please login.")
+                return redirect('admin_login')
 
-        # Check if email already exists
-        if User.objects.filter(email=email).exists():
-            messages.error(request, "Email already exists!")
-            return redirect('admin_register')
+            except Exception as e:
+                messages.error(request, f"Error during registration: {str(e)}")
+        else:
+             messages.error(request, "Please correct the errors below.")
+    else:
+        form = AdminRegistrationForm()
 
-        try:
-            # Create User
-            user = User.objects.create_user(username=email, email=email, password=password, first_name=name)
-            user.is_staff = True  # Give admin access to Django admin
-            user.is_superuser = True
-            user.save()
-
-            # Get or create 'Admin' group
-            admin_group, created = Group.objects.get_or_create(name='Admin')
-            user.groups.add(admin_group)
-
-            messages.success(request, "Admin registration successful! Please login.")
-            return redirect('admin_login')
-
-        except Exception as e:
-            messages.error(request, f"Error during registration: {str(e)}")
-            return redirect('admin_register')
-
-    return render(request, 'admin_register.html')
+    return render(request, 'admin_register.html', {'form': form})
 
 
 # ========== LOGIN & LOGOUT VIEWS ==========

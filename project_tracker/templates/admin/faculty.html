@@ -1,59 +1,52 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>All Faculty - Admin</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container">
-            <a class="navbar-brand" href="{% url 'admin_dashboard' %}">Admin Panel</a>
-            <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="{% url 'admin_students' %}">Students</a>
-                <a class="nav-link" href="{% url 'admin_faculty' %}">Faculty</a>
-                <a class="nav-link" href="{% url 'admin_projects' %}">Projects</a>
-                <a class="nav-link" href="{% url 'logout' %}">Logout</a>
-            </div>
+{% extends 'base.html' %}
+
+{% block title %}Manage Faculty - Admin{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 animate__animated animate__fadeInDown">
+    <h1 class="h3 fw-bold"><i class="fas fa-chalkboard-teacher me-2 text-success"></i>Manage Faculty</h1>
+    <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-secondary rounded-pill"><i
+            class="fas fa-arrow-left me-1"></i> Dashboard</a>
+</div>
+
+<div class="card glass-card animate__animated animate__fadeInUp">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Username</th>
+                        <th>Name</th>
+                        <th>Employee ID</th>
+                        <th>Department</th>
+                        <th>Designation</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for fac in faculty %}
+                    <tr>
+                        <td>{{ fac.user.username }}</td>
+                        <td class="fw-semibold">{{ fac.user.get_full_name }}</td>
+                        <td>{{ fac.employee_id }}</td>
+                        <td><span class="badge bg-info text-dark">{{ fac.department }}</span></td>
+                        <td>{{ fac.designation}}</td>
+                        <td>
+                            <a href="{% url 'delete_faculty' fac.id %}"
+                                class="btn btn-outline-danger btn-sm rounded-pill"
+                                onclick="return confirm('Are you sure you want to delete this faculty member?');">
+                                <i class="fas fa-trash-alt me-1"></i> Delete
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-4 text-muted">No faculty members found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
-    </nav>
-
-    <div class="container mt-4">
-        <h1>All Faculty</h1>
-
-        {% if messages %}
-        <div class="alert alert-success">
-            {% for message in messages %}
-            {{ message }}
-            {% endfor %}
-        </div>
-        {% endif %}
-
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Department</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for faculty in faculty %}
-                <tr>
-                    <td>{{ faculty.user.first_name }}</td>
-                    <td>{{ faculty.user.email }}</td>
-                    <td>{{ faculty.department }}</td>
-                    <td>
-                        <a href="{% url 'delete_faculty' faculty.id %}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this faculty?')">Delete</a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+</div>
+{% endblock %}
