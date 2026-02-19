@@ -14,11 +14,15 @@ if exist ".venv\Scripts\activate.bat" (
 
 :: Start Backend
 echo Starting Django Backend (Port 8000)...
-start "Django Backend" cmd /k "cd project_tracker && python manage.py runserver"
+if exist ".venv\Scripts\python.exe" (
+    start "Django Backend" cmd /k ".venv\Scripts\python.exe manage.py runserver"
+) else (
+    start "Django Backend" cmd /k "python manage.py runserver"
+)
 
 :: Start Frontend
 echo Starting React Frontend (Port 5173)...
-start "React Frontend" cmd /k "cd project_tracker/frontend && npm run dev"
+start "React Frontend" cmd /k "cd frontend && npm run dev"
 
 echo.
 echo ==========================================

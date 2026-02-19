@@ -5,3 +5,4 @@ tzdata==2023.3
 reportlab==4.0
 djangorestframework
 django-cors-headers
+mysqlclient

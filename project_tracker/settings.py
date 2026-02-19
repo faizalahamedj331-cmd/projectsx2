@@ -66,11 +66,16 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'project_tracker.wsgi.application'
 
-# Database Configuration (SQLite)
+# Database Configuration (MySQL)
+# Database Configuration (MySQL)
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'myproject',
+        'USER': 'root',
+        'PASSWORD': '123456',
+        'HOST': '127.0.0.1',
+        'PORT': '3306',
     }
 }
 

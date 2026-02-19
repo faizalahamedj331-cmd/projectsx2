@@ -11,13 +11,19 @@ if "%1"=="runserver" (
     echo  Starting Project Tracker (Full Stack)
     echo ==================================================
     echo 1. Starting React Frontend in a new window...
-    start "React Frontend" cmd /k "cd project_tracker/frontend && npm run dev"
+    start "React Frontend" cmd /k "cd frontend && npm run dev"
     
     echo 2. Starting Django Backend...
-    cd project_tracker
-    python manage.py runserver
+    if exist ".venv\Scripts\python.exe" (
+        .venv\Scripts\python.exe manage.py runserver
+    ) else (
+        python manage.py runserver
+    )
 ) else (
     :: Forward all other commands (migrate, createsuperuser, etc.) to actual manage.py
-    cd project_tracker
-    python manage.py %*
+    if exist ".venv\Scripts\python.exe" (
+        .venv\Scripts\python.exe manage.py %*
+    ) else (
+        python manage.py %*
+    )
 )
