@@ -104,4 +104,136 @@
         </div>
     </div>
 </div>
+<!-- Analytics Charts -->
+<div class="row g-4 mb-4 animate__animated animate__fadeInUp animate__delay-2s">
+    <!-- Status Distribution -->
+    <div class="col-md-4">
+        <div class="card glass-card h-100">
+            <div class="card-header bg-transparent border-bottom border-light">
+                <h5 class="mb-0 fw-bold"><i class="fas fa-chart-pie me-2 text-primary"></i>Internship Status</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="statusChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trend -->
+    <div class="col-md-8">
+        <div class="card glass-card h-100">
+            <div class="card-header bg-transparent border-bottom border-light">
+                <h5 class="mb-0 fw-bold"><i class="fas fa-chart-line me-2 text-info"></i>Application Trend (30 Days)
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="trendChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Companies -->
+    <div class="col-md-12">
+        <div class="card glass-card h-100">
+            <div class="card-header bg-transparent border-bottom border-light">
+                <h5 class="mb-0 fw-bold"><i class="fas fa-building me-2 text-warning"></i>Top Hiring Companies</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="companyChart" height="100"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Common Options
+        Chart.defaults.color = '#333';
+        Chart.defaults.font.family = "'Poppins', sans-serif";
+
+        // 1. Status Chart (Pie)
+        const statusCtx = document.getElementById('statusChart').getContext('2d');
+        new Chart(statusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: {{ status_labels| safe }},
+        datasets: [{
+            data: {{ status_values| safe }},
+        backgroundColor: [
+            '#ffc107', // Warning/Pending
+            '#198754', // Success/Approved
+            '#dc3545', // Danger/Rejected
+            '#0dcaf0', // Info
+            '#6610f2'  // Purple
+        ],
+        borderWidth: 0
+                }]
+            },
+        options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'bottom',
+            }
+        }
+    }
+        });
+
+    // 2. Trend Chart (Line)
+    const trendCtx = document.getElementById('trendChart').getContext('2d');
+    new Chart(trendCtx, {
+        type: 'line',
+        data: {
+            labels: {{ trend_labels| safe }},
+        datasets: [{
+            label: 'Applications',
+            data: {{ trend_values| safe }},
+        borderColor: '#0dcaf0',
+        backgroundColor: 'rgba(13, 202, 240, 0.1)',
+        tension: 0.4,
+        fill: true
+                }]
+            },
+        options: {
+        responsive: true,
+        plugins: {
+            legend: { display: false }
+        },
+        scales: {
+            y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+            x: { grid: { display: false } }
+        }
+    }
+        });
+
+    // 3. Company Chart (Bar)
+    const companyCtx = document.getElementById('companyChart').getContext('2d');
+    new Chart(companyCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ company_labels| safe }},
+        datasets: [{
+            label: 'Interns Hired',
+            data: {{ company_values| safe }},
+        backgroundColor: '#6610f2',
+        borderRadius: 4
+                }]
+            },
+        options: {
+        responsive: true,
+        indexAxis: 'y',
+        plugins: {
+            legend: { display: false }
+        },
+        scales: {
+            x: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+            y: { grid: { display: false } }
+        }
+    }
+        });
+    });
+</script>
 {% endblock %}

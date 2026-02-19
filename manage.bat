@@ -1,14 +1,23 @@
 @echo off
-REM manage.bat - wrapper to run Django manage.py using the project's venv Python
-REM Usage: manage.bat runserver  or manage.bat migrate
 
-setlocal
-set "ROOT=%~dp0"
-set "VENV_PY=%ROOT%project_tracker\venv\Scripts\python.exe"
-if exist "%VENV_PY%" (
-    "%VENV_PY%" "%ROOT%project_tracker\manage.py" %*
-) else (
-    REM Fall back to system python if venv python not found
-    python "%ROOT%project_tracker\manage.py" %*
+:: Activate Virtual Environment if it exists
+if exist ".venv\Scripts\activate.bat" (
+    call .venv\Scripts\activate.bat
 )
-endlocal
+
+:: Check if the command is 'runserver'
+if "%1"=="runserver" (
+    echo ==================================================
+    echo  Starting Project Tracker (Full Stack)
+    echo ==================================================
+    echo 1. Starting React Frontend in a new window...
+    start "React Frontend" cmd /k "cd project_tracker/frontend && npm run dev"
+    
+    echo 2. Starting Django Backend...
+    cd project_tracker
+    python manage.py runserver
+) else (
+    :: Forward all other commands (migrate, createsuperuser, etc.) to actual manage.py
+    cd project_tracker
+    python manage.py %*
+)

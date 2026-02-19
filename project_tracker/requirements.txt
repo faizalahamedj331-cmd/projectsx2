@@ -3,3 +3,5 @@ sqlparse==0.4.4
 asgiref==3.7.1
 tzdata==2023.3
 reportlab==4.0
+djangorestframework
+django-cors-headers

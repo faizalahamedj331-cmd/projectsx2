@@ -43,16 +43,18 @@ class ProjectReviewForm(forms.ModelForm):
 class InternshipForm(forms.ModelForm):
     class Meta:
         model = Internship
-        fields = ['company_name', 'position', 'location', 'start_date', 'end_date', 
-                  'description', 'stipend', 'supervisor_name', 'supervisor_email', 'attachment']
+        fields = ['company_name', 'role', 'location', 'duration', 'stipend', 'skills_required', 
+                  'start_date', 'end_date', 'description', 'supervisor_name', 'supervisor_email', 'attachment']
         widgets = {
             'company_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Company Name'}),
-            'position': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Position/Role'}),
+            'role': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Job Role / Position'}),
             'location': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Location'}),
+            'duration': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Duration (e.g. 6 Months)'}),
+            'stipend': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Stipend'}),
+            'skills_required': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Skills required...'}),
             'start_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'end_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Internship description...'}),
-            'stipend': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Stipend (e.g., 10000/month)'}),
             'supervisor_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Supervisor Name'}),
             'supervisor_email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Supervisor Email'}),
             'attachment': forms.FileInput(attrs={'class': 'form-control'}),
@@ -62,9 +64,9 @@ class InternshipForm(forms.ModelForm):
 class InternshipReviewForm(forms.ModelForm):
     class Meta:
         model = Internship
-        fields = ['status', 'faculty_remarks']
+        fields = ['faculty_status', 'faculty_remarks']
         widgets = {
-            'status': forms.Select(attrs={'class': 'form-control'}),
+            'faculty_status': forms.Select(attrs={'class': 'form-control'}),
             'faculty_remarks': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Add your remarks...'}),
         }
 

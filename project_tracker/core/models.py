@@ -116,36 +116,59 @@ class ProjectReport(models.Model):
 # Internship Model
 class Internship(models.Model):
     """
-    Model to store student internship information.
+    Model to store student internship information and application status.
     """
-    STATUS_PENDING = 'P'
-    STATUS_APPROVED = 'A'
-    STATUS_REJECTED = 'R'
-    STATUS_CHOICES = [
-        (STATUS_PENDING, 'Pending'),
-        (STATUS_APPROVED, 'Approved'),
-        (STATUS_REJECTED, 'Rejected'),
+    # Faculty Approval Status
+    FACULTY_STATUS_PENDING = 'Pending'
+    FACULTY_STATUS_APPROVED = 'Approved'
+    FACULTY_STATUS_REJECTED = 'Rejected'
+    FACULTY_STATUS_CHOICES = [
+        (FACULTY_STATUS_PENDING, 'Pending'),
+        (FACULTY_STATUS_APPROVED, 'Approved'),
+        (FACULTY_STATUS_REJECTED, 'Rejected'),
+    ]
+
+    # Company Application Status
+    APP_STATUS_APPLIED = 'Applied'
+    APP_STATUS_PENDING = 'Pending'
+    APP_STATUS_SHORTLISTED = 'Shortlisted'
+    APP_STATUS_REJECTED = 'Rejected'
+    APP_STATUS_SELECTED = 'Selected'
+    APP_STATUS_CHOICES = [
+        (APP_STATUS_APPLIED, 'Applied'),
+        (APP_STATUS_PENDING, 'Pending'),
+        (APP_STATUS_SHORTLISTED, 'Shortlisted'),
+        (APP_STATUS_REJECTED, 'Rejected'),
+        (APP_STATUS_SELECTED, 'Selected'),
     ]
 
     student = models.ForeignKey(StudentProfile, on_delete=models.CASCADE, related_name='internships')
     company_name = models.CharField(max_length=255)
-    position = models.CharField(max_length=255)
-    location = models.CharField(max_length=255)
-    start_date = models.DateField()
+    role = models.CharField(max_length=255, default='Intern', help_text="Job Role / Position") 
+    location = models.CharField(max_length=255, default='Remote')
+    duration = models.CharField(max_length=50, default='3 Months', help_text="e.g. 6 Months")
+    stipend = models.CharField(max_length=50, blank=True)
+    skills_required = models.TextField(default='Python, Django', help_text="Comma separated skills")
+    
+    start_date = models.DateField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)
     description = models.TextField(blank=True)
-    stipend = models.CharField(max_length=50, blank=True)
+    
     supervisor_name = models.CharField(max_length=255, blank=True)
     supervisor_email = models.EmailField(blank=True)
-    status = models.CharField(max_length=1, choices=STATUS_CHOICES, default=STATUS_PENDING)
+    
+    # Status Fields
+    faculty_status = models.CharField(max_length=20, choices=FACULTY_STATUS_CHOICES, default=FACULTY_STATUS_PENDING)
+    application_status = models.CharField(max_length=20, choices=APP_STATUS_CHOICES, default=APP_STATUS_PENDING)
+    
     faculty_remarks = models.TextField(blank=True)
     attachment = models.FileField(upload_to='internship_documents/', null=True, blank=True)
-    submitted_at = models.DateTimeField(auto_now_add=True)
-    reviewed_at = models.DateTimeField(null=True, blank=True)
+    
+    applied_date = models.DateTimeField(auto_now_add=True)  # Previously submitted_at
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['-submitted_at']
+        ordering = ['-applied_date']
 
     def __str__(self):
-        return f"{self.company_name} - {self.student.user.username}"
+        return f"{self.company_name} - {self.role} ({self.student.user.username})"

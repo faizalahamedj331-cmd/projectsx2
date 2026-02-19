@@ -100,6 +100,37 @@
             </div>
         </div>
 
+        <!-- Recommended Internships Section -->
+        <div class="card glass-card mb-4">
+            <div class="card-header bg-transparent border-bottom border-light">
+                <h4 class="mb-0 fw-bold"><i class="fas fa-star me-2 text-warning"></i>Recommended Internships</h4>
+            </div>
+            <div class="card-body">
+                {% if recommended_internships %}
+                <div class="row">
+                    {% for rec in recommended_internships %}
+                    <div class="col-md-6 mb-3">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body">
+                                <h5 class="card-title fw-bold text-primary">{{ rec.role }}</h5>
+                                <h6 class="card-subtitle mb-2 text-muted">{{ rec.company }}</h6>
+                                <p class="card-text small">
+                                    <i class="fas fa-map-marker-alt me-1"></i> {{ rec.location }}<br>
+                                    <i class="fas fa-tools me-1"></i> {{ rec.skills }}
+                                </p>
+                                <a href="{% url 'internship_add' %}" class="btn btn-sm btn-outline-primary w-100">Apply
+                                    Now</a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted text-center">No recommendations at the moment.</p>
+                {% endif %}
+            </div>
+        </div>
+
         <!-- Internships Section -->
         <div class="card glass-card">
             <div
@@ -116,25 +147,44 @@
                     <table class="table table-hover align-middle">
                         <thead class="table-light">
                             <tr>
+                            <tr>
                                 <th>Company</th>
                                 <th>Role</th>
                                 <th>Location</th>
-                                <th>Status</th>
+                                <th>Faculty Status</th>
+                                <th>App Status</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for i in internships %}
                             <tr>
                                 <td class="fw-semibold">{{ i.company_name }}</td>
-                                <td>{{ i.position }}</td>
+                                <td>{{ i.role }}</td>
                                 <td>{{ i.location }}</td>
                                 <td>
-                                    {% if i.status == 'P' %}
+                                    {% if i.faculty_status == 'Pending' %}
                                     <span class="badge bg-warning text-dark">Pending</span>
-                                    {% elif i.status == 'A' %}
+                                    {% elif i.faculty_status == 'Approved' %}
                                     <span class="badge bg-success">Approved</span>
                                     {% else %}
                                     <span class="badge bg-danger">Rejected</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge bg-info text-dark">{{ i.application_status }}</span>
+                                </td>
+                                <td>
+                                    {% if i.faculty_status != 'Approved' %}
+                                    <a href="{% url 'internship_edit' i.id %}"
+                                        class="btn btn-sm btn-outline-secondary"><i class="fas fa-edit"></i></a>
+                                    {% else %}
+                                    {% if i.application_status != 'Applied' %}
+                                    <a href="{% url 'internship_apply' i.id %}" class="btn btn-sm btn-primary">Apply
+                                        Now</a>
+                                    {% else %}
+                                    <span class="text-muted small"><i class="fas fa-check"></i> Sent</span>
+                                    {% endif %}
                                     {% endif %}
                                 </td>
                             </tr>
@@ -215,46 +265,12 @@
                 <form method="post" enctype="multipart/form-data">
                     {% csrf_token %}
                     <div class="row g-3">
+                        {% for field in internship_form %}
                         <div class="col-md-6">
-                            <label class="form-label fw-bold">Company Name</label>
-                            {{ internship_form.company_name }}
+                            <label class="form-label fw-bold">{{ field.label }}</label>
+                            {{ field }}
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">Position</label>
-                            {{ internship_form.position }}
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">Start Date</label>
-                            {{ internship_form.start_date }}
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">End Date</label>
-                            {{ internship_form.end_date }}
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">Location</label>
-                            {{ internship_form.location }}
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">Stipend</label>
-                            {{ internship_form.stipend }}
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">Supervisor Name</label>
-                            {{ internship_form.supervisor_name }}
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">Supervisor Email</label>
-                            {{ internship_form.supervisor_email }}
-                        </div>
-                        <div class="col-md-12">
-                            <label class="form-label fw-bold">Description</label>
-                            {{ internship_form.description }}
-                        </div>
-                        <div class="col-md-12">
-                            <label class="form-label fw-bold">Attachment</label>
-                            {{ internship_form.attachment }}
-                        </div>
+                        {% endfor %}
                         <input type="hidden" name="internship_submit" value="1">
                     </div>
                     <div class="mt-4 text-end">

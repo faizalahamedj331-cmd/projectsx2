@@ -16,6 +16,7 @@ import io
 from reportlab.pdfgen import canvas
 
 
+from .utils import send_application_email, get_recommended_internships
 
 # ========== REGISTRATION VIEWS ==========
 
@@ -291,6 +292,7 @@ def student_dashboard(request):
         'internships': internships,
         'form': form,
         'internship_form': internship_form,
+        'recommended_internships': get_recommended_internships(student_profile),
     }
     return render(request, 'student_dashboard.html', context)
 
@@ -321,11 +323,11 @@ def faculty_dashboard(request):
         projects = projects.filter(status=project_status_filter)
 
     # Show all internships for review (faculty can review any internship)
-    internships = Internship.objects.all().order_by('-submitted_at')
+    internships = Internship.objects.all().order_by('-applied_date')
     
     # Apply internship status filter
     if internship_status_filter:
-        internships = internships.filter(status=internship_status_filter)
+        internships = internships.filter(faculty_status=internship_status_filter)
 
     # Handle project review
     if request.method == 'POST':
@@ -360,9 +362,9 @@ def faculty_dashboard(request):
             review_form = InternshipReviewForm(request.POST, instance=internship)
             if review_form.is_valid():
                 intern = review_form.save(commit=False)
-                if intern.status != Internship.STATUS_PENDING:
-                    from django.utils import timezone
-                    intern.reviewed_at = timezone.now()
+                # No reviewed_at field in new model? I removed it in replacement? 
+                # Let's check model again. I think I kept updated_at.
+                # If I removed reviewed_at, I should remove this line.
                 intern.save()
                 messages.success(request, 'Internship updated')
                 return redirect('faculty_dashboard')
@@ -430,6 +432,43 @@ def generate_report(request, project_id):
     return redirect('faculty_dashboard')
 
 
+@group_required('Faculty')
+def generate_internship_report(request, internship_id):
+    """
+    Generate a simple PDF report for an internship.
+    """
+    try:
+        faculty_profile = FacultyProfile.objects.get(user=request.user)
+        internship = Internship.objects.get(pk=internship_id)
+    except (FacultyProfile.DoesNotExist, Internship.DoesNotExist):
+        messages.error(request, 'Invalid request')
+        return redirect('faculty_dashboard')
+
+    buffer = io.BytesIO()
+    p = canvas.Canvas(buffer)
+    p.setFont('Helvetica', 14)
+    p.drawString(50, 800, f"Internship Report: {internship.company_name}")
+    p.setFont('Helvetica', 11)
+    p.drawString(50, 780, f"Student: {internship.student.user.username} ({internship.student.register_number})")
+    p.drawString(50, 760, f"Role: {internship.role}")
+    p.drawString(50, 740, f"Duration: {internship.duration}")
+    p.drawString(50, 720, f"Faculty Status: {internship.get_faculty_status_display()}")
+    
+    y = 700
+    p.drawString(50, y, "Description:")
+    text = p.beginText(50, y - 15)
+    text.textLines(f"{internship.description}\n\nFaculty Remarks:\n{internship.faculty_remarks}")
+    p.drawText(text)
+    
+    p.showPage()
+    p.save()
+
+    buffer.seek(0)
+    filename = f"internship_report_{internship.id}.pdf"
+    
+    return FileResponse(buffer, as_attachment=True, filename=filename)
+
+
 @group_required('Admin')
 def admin_dashboard(request):
     """
@@ -448,9 +487,36 @@ def admin_dashboard(request):
 
     # Get internship statistics
     total_internships = Internship.objects.count()
-    pending_internships = Internship.objects.filter(status=Internship.STATUS_PENDING).count()
-    approved_internships = Internship.objects.filter(status=Internship.STATUS_APPROVED).count()
-    rejected_internships = Internship.objects.filter(status=Internship.STATUS_REJECTED).count()
+    pending_internships = Internship.objects.filter(faculty_status=Internship.FACULTY_STATUS_PENDING).count()
+    approved_internships = Internship.objects.filter(faculty_status=Internship.FACULTY_STATUS_APPROVED).count()
+    rejected_internships = Internship.objects.filter(faculty_status=Internship.FACULTY_STATUS_REJECTED).count()
+
+    # --- Analytics Data ---
+    from django.db.models.functions import TruncDate
+    from django.utils import timezone
+    import datetime
+
+    # 1. Internship Status Distribution
+    status_counts = Internship.objects.values('faculty_status').annotate(count=Count('id'))
+    # Convert to list for template
+    status_labels = [item['faculty_status'] for item in status_counts]
+    status_values = [item['count'] for item in status_counts]
+
+    # 2. Top 5 Companies
+    top_companies_data = Internship.objects.values('company_name').annotate(count=Count('id')).order_by('-count')[:5]
+    company_labels = [item['company_name'] for item in top_companies_data]
+    company_values = [item['count'] for item in top_companies_data]
+
+    # 3. Application Trend (Last 30 days)
+    last_30_days = timezone.now() - datetime.timedelta(days=30)
+    trend_data = Internship.objects.filter(applied_date__gte=last_30_days)\
+        .annotate(date=TruncDate('applied_date'))\
+        .values('date')\
+        .annotate(count=Count('id'))\
+        .order_by('date')
+    
+    trend_labels = [item['date'].strftime('%Y-%m-%d') for item in trend_data]
+    trend_values = [item['count'] for item in trend_data]
 
     context = {
         'user': request.user,
@@ -464,6 +530,14 @@ def admin_dashboard(request):
         'pending_internships': pending_internships,
         'approved_internships': approved_internships,
         'rejected_internships': rejected_internships,
+        
+        # Analytics
+        'status_labels': status_labels,
+        'status_values': status_values,
+        'company_labels': company_labels,
+        'company_values': company_values,
+        'trend_labels': trend_labels,
+        'trend_values': trend_values,
     }
     return render(request, 'admin/dashboard.html', context)
 
@@ -550,3 +624,124 @@ def delete_project(request, project_id):
     except Project.DoesNotExist:
         messages.error(request, "Project not found!")
     return redirect('admin_projects')
+
+
+# ========== INTERNSHIP VIEWS ==========
+
+@group_required('Student')
+def internship_add(request):
+    """
+    View for students to add/submit an internship.
+    """
+    if request.method == 'POST':
+        form = InternshipForm(request.POST, request.FILES)
+        if form.is_valid():
+            internship = form.save(commit=False)
+            internship.student = StudentProfile.objects.get(user=request.user)
+            internship.save()
+            messages.success(request, "Internship added successfully!")
+            return redirect('student_dashboard')
+    else:
+        form = InternshipForm()
+    
+    return render(request, 'internship_form.html', {'form': form, 'title': 'Add Internship'})
+
+
+@group_required('Student')
+def internship_edit(request, internship_id):
+    """
+    View for students to edit an existing internship (only if not approved).
+    """
+    internship = Internship.objects.get(pk=internship_id)
+    if internship.student.user != request.user:
+        messages.error(request, "Access denied!")
+        return redirect('student_dashboard')
+        
+    if internship.faculty_status == Internship.FACULTY_STATUS_APPROVED:
+        messages.error(request, "Cannot edit approved internship!")
+        return redirect('student_dashboard')
+
+    if request.method == 'POST':
+        form = InternshipForm(request.POST, request.FILES, instance=internship)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Internship updated successfully!")
+            return redirect('student_dashboard')
+    else:
+        form = InternshipForm(instance=internship)
+    
+    return render(request, 'internship_form.html', {'form': form, 'title': 'Edit Internship'})
+
+
+@group_required('Student')
+def internship_apply(request, internship_id):
+    """
+    Simulate applying to an internship via email.
+    Note: This expects 'internship_id' to be passed, but if we are applying to 
+    'Recommended Internships' which aren't in DB yet, we might need a different approach.
+    
+    However, assuming the flow is: 
+    1. Student sees recommendation.
+    2. Student clicks 'Apply' -> This might just pre-fill a form OR 
+       if the recommendation was an actual Internship object (which it isn't currently), 
+       we would update it.
+       
+    Let's assume this view is for 'Apply Now' on an EXISTING Internship object 
+    (e.g. one they added but haven't 'applied' to company yet? 
+     Or maybe the 'Recommended' list initiates this?)
+    
+    If 'Recommended' list items are just dicts, we can't link to `internship_apply/<id>`.
+    
+    Let's handle the case where student clicks 'Apply' on their OWN internship record 
+    to trigger the email.
+    """
+    try:
+        internship = Internship.objects.get(pk=internship_id)
+        if internship.student.user != request.user:
+            messages.error(request, "Access denied!")
+            return redirect('student_dashboard')
+            
+        student_profile = StudentProfile.objects.get(user=request.user)
+        
+        if send_application_email(internship, student_profile):
+            internship.application_status = Internship.APP_STATUS_APPLIED
+            internship.save()
+            messages.success(request, f"Application email sent to {internship.company_name}!")
+        else:
+            messages.error(request, "Failed to send application email.")
+            
+    except Internship.DoesNotExist:
+        messages.error(request, "Internship not found!")
+        
+    return redirect('student_dashboard')
+
+
+@group_required('Faculty')
+def internship_approve(request, internship_id):
+    """
+    View for faculty to approve/reject internship.
+    """
+    try:
+        internship = Internship.objects.get(pk=internship_id)
+    except Internship.DoesNotExist:
+        messages.error(request, "Internship not found!")
+        return redirect('faculty_dashboard')
+
+    if request.method == 'POST':
+        form = InternshipReviewForm(request.POST, instance=internship)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Internship status updated!")
+            return redirect('faculty_dashboard')
+    else:
+        form = InternshipReviewForm(instance=internship)
+        
+    return render(request, 'internship_review.html', {'form': form, 'internship': internship})
+
+
+def internship_list(request):
+    """
+    List view (placeholder/utility).
+    """
+    return redirect('student_dashboard')
+

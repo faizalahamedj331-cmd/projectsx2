@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from . import api
 
 urlpatterns = [
     # Root — landing page
@@ -28,4 +29,15 @@ urlpatterns = [
     path('admin/projects/delete/<int:project_id>/', views.delete_project, name='delete_project'),
 
     path('project/<int:project_id>/generate_report/', views.generate_report, name='generate_report'),
+    path('internship/<int:internship_id>/generate_report/', views.generate_internship_report, name='generate_internship_report'),
+    
+    # API URLs
+    path('api/test/', api.test_api, name='test_api'),
+
+    # Internship URLs
+    path('internship/add/', views.internship_add, name='internship_add'),
+    path('internship/edit/<int:internship_id>/', views.internship_edit, name='internship_edit'),
+    path('internship/list/', views.internship_list, name='internship_list'),
+    path('internship/approve/<int:internship_id>/', views.internship_approve, name='internship_approve'),
+    path('internship/apply/<int:internship_id>/', views.internship_apply, name='internship_apply'),
 ]

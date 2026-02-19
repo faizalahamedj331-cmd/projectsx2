@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block title %}Review Internship{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h3>Review Internship Application</h3>
+        </div>
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h5>Student Details</h5>
+                    <p><strong>Name:</strong> {{ internship.student.user.first_name }} {{
+                        internship.student.user.last_name }}</p>
+                    <p><strong>Register No:</strong> {{ internship.student.register_number }}</p>
+                    <p><strong>Department:</strong> {{ internship.student.department }}</p>
+                </div>
+                <div class="col-md-6">
+                    <h5>Internship Details</h5>
+                    <p><strong>Company:</strong> {{ internship.company_name }}</p>
+                    <p><strong>Role:</strong> {{ internship.role }}</p>
+                    <p><strong>Duration:</strong> {{ internship.duration }}</p>
+                    <p><strong>Location:</strong> {{ internship.location }}</p>
+                    <p><strong>Supervisor:</strong> {{ internship.supervisor_name }} ({{ internship.supervisor_email }})
+                    </p>
+                </div>
+            </div>
+
+            <hr>
+
+            <form method="POST">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label">Review Action</label>
+                    {{ form.faculty_status }}
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Remarks</label>
+                    {{ form.faculty_remarks }}
+                </div>
+                <button type="submit" class="btn btn-success">Update Status</button>
+                <a href="{% url 'faculty_dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

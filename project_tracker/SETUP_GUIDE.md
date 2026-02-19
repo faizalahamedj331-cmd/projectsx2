@@ -1,5 +1,25 @@
 # Quick Start Guide - Setup Instructions
 
+## 🚀 Quick Start (One-Click)
+
+To run the entire application (Backend + Frontend):
+
+```powershell
+.\manage.bat runserver
+```
+
+This will:
+1. Start the React Frontend in a separate window.
+2. Start the Django Backend in the current window.
+
+You can also use `.\manage.bat` to run other Django commands from the root, for example:
+```powershell
+.\manage.bat migrate
+.\manage.bat createsuperuser
+```
+
+---
+
 ## Complete Setup in 5 Minutes
 
 ### 1️⃣ Install Python Dependencies
