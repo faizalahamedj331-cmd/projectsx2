@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Login - Project Tracker{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="col-md-5 col-lg-4">
+        <div class="card glass-card border-0 animate__animated animate__zoomIn">
+            <div class="card-body p-5 border-top border-5 border-danger rounded-3">
+                <div class="text-center mb-4">
+                    <i class="fas fa-user-shield fa-3x text-danger mb-3"></i>
+                    <h2 class="fw-bold">Admin Portal</h2>
+                    <p class="text-muted">Restricted Access</p>
+                </div>
+
+                <form method="post" class="needs-validation" novalidate>
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger animate__animated animate__shakeX">
+                        {% for error in form.non_field_errors %}
+                        {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <div class="form-floating mb-3">
+                        <input type="email" name="email" class="form-control" id="id_email" placeholder="Email Address"
+                            required>
+                        <label for="id_email"><i class="fas fa-envelope me-2"></i>Email Address</label>
+                    </div>
+
+                    <div class="form-floating mb-4">
+                        <input type="password" name="password" class="form-control" id="id_password"
+                            placeholder="Password" required>
+                        <label for="id_password"><i class="fas fa-lock me-2"></i>Password</label>
+                        <span class="position-absolute top-50 end-0 translate-middle-y me-3 cursor-pointer"
+                            onclick="togglePassword('id_password', this)">
+                            <i class="fas fa-eye text-muted"></i>
+                        </span>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-danger btn-lg rounded-pill">
+                            Access Admin Panel <i class="fas fa-arrow-right ms-2"></i>
+                        </button>
+                    </div>
+                </form>
+
+                <div class="text-center mt-4">
+                    <a href="{% url 'home' %}" class="text-secondary text-decoration-none small"><i
+                            class="fas fa-arrow-left me-1"></i> Back to Home</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function togglePassword(inputId, icon) {
+        const input = document.getElementById(inputId);
+        const iconElement = icon.querySelector('i');
+
+        if (input.type === "password") {
+            input.type = "text";
+            iconElement.classList.remove('fa-eye');
+            iconElement.classList.add('fa-eye-slash');
+        } else {
+            input.type = "password";
+            iconElement.classList.remove('fa-eye-slash');
+            iconElement.classList.add('fa-eye');
+        }
+    }
+</script>
+{% endblock %}
